@@ -1,8 +1,7 @@
+import { Frame } from "../types/types";
 import { Router } from "express";
-
 import Stripe from "stripe";
 import dotenv from "dotenv";
-import { Frame } from "../types/types";
 import { storage } from "firebase-admin";
 
 dotenv.config();
@@ -13,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2022-11-15",
 });
 
-router.post("/api/checkout", async (req, res) => {
+router.post("/checkout", async (req, res) => {
   const bucket = storage().bucket();
 
   const item = req.body.item as Frame;
