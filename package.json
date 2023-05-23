@@ -27,7 +27,6 @@
     "typescript": "^5.0.2"
   },
   "scripts": {
-    "dev": "nodemon index.ts",
-    "build": "tsc --project ."
+    "dev": "nodemon index.ts"
   }
 }
