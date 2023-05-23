@@ -1,7 +1,9 @@
-import { Router } from "express";
-import { firestore, storage } from "firebase-admin";
 import { Frame, Series } from "../types/types";
+import { firestore, storage } from "firebase-admin";
 import multer, { memoryStorage } from "multer";
+
+import { Router } from "express";
+import { v4 } from "uuid";
 
 const router = Router();
 
@@ -28,7 +30,7 @@ router.post("/:seriesId", upload.single("photo"), async (req, res) => {
 
   const seriesId = req.params.seriesId;
 
-  const frameId = `frame-${crypto.randomUUID()}`;
+  const frameId = `frame-${v4()}`;
 
   const buffer = req.file.buffer;
   const file = bucket.file(frameId);

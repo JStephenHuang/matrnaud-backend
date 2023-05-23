@@ -1,11 +1,11 @@
-import { Router } from "express";
-import { storage, firestore } from "firebase-admin";
 import { Frame, Series } from "../types/types";
+import { firestore, storage } from "firebase-admin";
 import multer, { memoryStorage } from "multer";
 
-const router = Router();
+import { Router } from "express";
+import { v4 } from "uuid";
 
-const upload = multer({ storage: memoryStorage() });
+const router = Router();
 
 router.get("/", async (req, res) => {
   const db = firestore();
@@ -74,7 +74,7 @@ router.get("/:seriesId", async (req, res) => {
 router.post("/", async (req, res) => {
   const db = firestore();
 
-  const seriesId = `series-${crypto.randomUUID()}`;
+  const seriesId = `series-${v4()}`;
 
   const series = {
     id: seriesId,

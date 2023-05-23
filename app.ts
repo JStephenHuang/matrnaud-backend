@@ -28,26 +28,6 @@ admin.initializeApp({
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
-app.get("/api", (req, res) => {
-  const path = `/api/item/${v4()}`;
-
-  res.setHeader("Content-Type", "text/html");
-
-  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
-
-  res.end(`Hello! Go to item: <a href="${path}">${path}</a>`);
-});
-
-app.get("/api/item/:slug", (req, res) => {
-  const { slug } = req.params;
-
-  res.end(`Item: ${slug}`);
-});
-
-app.get("/api/health", (_req, res) => {
-  res.send("Server is alive");
-});
-
 app.use("/api/photos", photoRouter);
 app.use("/api/series", seriesRouter);
 app.use("/api/frames", framesRouter);
