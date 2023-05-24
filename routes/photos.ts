@@ -118,7 +118,7 @@ router.post("/:photoId", upload.array("photos"), async (req, res) => {
   const addedPhotoshoot = [];
 
   for (const file of files) {
-    const fileId = crypto.randomUUID();
+    const fileId = `photoshoot-${v4()}`;
 
     const bucketFile = bucket.file(fileId);
     await bucketFile.save(file.buffer);
