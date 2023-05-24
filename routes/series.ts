@@ -79,6 +79,7 @@ router.post("/", async (req, res) => {
   const series = {
     id: seriesId,
     title: "",
+    description: "",
     startDate: "",
     endDate: "",
     frames: [],
@@ -108,6 +109,7 @@ router.put("/:seriesId", async (req, res) => {
 
   await seriesRef.update({
     title: editedSeries.title,
+    description: editedSeries.description,
     startDate: editedSeries.startDate,
     endDate: editedSeries.endDate,
     active: editedSeries.active,

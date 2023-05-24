@@ -8,7 +8,6 @@ import { router as photoRouter } from "./routes/photos";
 import { router as seriesRouter } from "./routes/series";
 import sgMail from "@sendgrid/mail";
 import { router as stripeRouter } from "./stripe/stripe";
-import { v4 } from "uuid";
 
 const app = express();
 

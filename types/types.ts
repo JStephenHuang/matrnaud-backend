@@ -12,6 +12,7 @@ export type Photo = {
 export type Series = {
   id: string;
   title: string;
+  description: string;
   startDate: string;
   endDate: string;
   frames: string[];
