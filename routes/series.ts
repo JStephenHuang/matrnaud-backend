@@ -3,6 +3,7 @@ import { firestore, storage } from "firebase-admin";
 import multer, { memoryStorage } from "multer";
 
 import { Router } from "express";
+import { isAuthenticated } from "../middlewares/isAuthenticated";
 import { v4 } from "uuid";
 
 const router = Router();
@@ -71,7 +72,7 @@ router.get("/:seriesId", async (req, res) => {
   });
 });
 
-router.post("/", async (req, res) => {
+router.post("/", isAuthenticated, async (req, res) => {
   const db = firestore();
 
   const seriesId = `series-${v4()}`;
@@ -98,7 +99,7 @@ router.post("/", async (req, res) => {
   return res.status(200).send(seriesId);
 });
 
-router.put("/:seriesId", async (req, res) => {
+router.put("/:seriesId", isAuthenticated, async (req, res) => {
   const db = firestore();
 
   const seriesId = req.params.seriesId;
@@ -125,7 +126,7 @@ router.put("/:seriesId", async (req, res) => {
 
 // ! DELETE a photo by ID
 
-router.delete("/:seriesId", async (req, res) => {
+router.delete("/:seriesId", isAuthenticated, async (req, res) => {
   const bucket = storage().bucket();
   const db = firestore();
 

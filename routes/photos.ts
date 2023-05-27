@@ -3,6 +3,7 @@ import multer, { memoryStorage } from "multer";
 
 import { Photo } from "../types/types";
 import { Router } from "express";
+import { isAuthenticated } from "../middlewares/isAuthenticated";
 import { v4 } from "uuid";
 
 const router = Router();
@@ -53,7 +54,7 @@ router.get("/:photoId", async (req, res) => {
 
 // ! POST a photo
 
-router.post("/", upload.single("photo"), async (req, res) => {
+router.post("/", isAuthenticated, upload.single("photo"), async (req, res) => {
   const bucket = storage().bucket();
   const db = firestore();
 
@@ -105,86 +106,95 @@ router.post("/", upload.single("photo"), async (req, res) => {
 
 // ! POST multiple photo for photoshoot
 
-router.post("/:photoId", upload.array("photos"), async (req, res) => {
-  const bucket = storage().bucket();
-  const db = firestore();
+router.post(
+  "/:photoId",
+  isAuthenticated,
+  upload.array("photos"),
+  async (req, res) => {
+    const bucket = storage().bucket();
+    const db = firestore();
 
-  if (req.files === undefined) return res.status(400).send("No files.");
+    if (req.files === undefined) return res.status(400).send("No files.");
 
-  const files = req.files as Express.Multer.File[];
+    const files = req.files as Express.Multer.File[];
 
-  const photoId = req.params.photoId;
+    const photoId = req.params.photoId;
 
-  const addedPhotoshoot = [];
+    const addedPhotoshoot = [];
 
-  for (const file of files) {
-    const fileId = `photoshoot-${v4()}`;
+    for (const file of files) {
+      const fileId = `photoshoot-${v4()}`;
 
-    const bucketFile = bucket.file(fileId);
-    await bucketFile.save(file.buffer);
-    await bucketFile.makePublic();
-    const path = bucketFile.publicUrl();
+      const bucketFile = bucket.file(fileId);
+      await bucketFile.save(file.buffer);
+      await bucketFile.makePublic();
+      const path = bucketFile.publicUrl();
 
-    addedPhotoshoot.push({ id: fileId, url: path });
+      addedPhotoshoot.push({ id: fileId, url: path });
+    }
+
+    const photoRef = db.collection("main-photos").doc(photoId);
+
+    const doc = await photoRef.get();
+
+    if (!doc.exists)
+      return res.status(400).send("Database error: photo does not exist.");
+
+    const photo = doc.data() as Photo;
+
+    const photoshoot = photo.photoshoot;
+
+    const finalPhotoshoot = photoshoot.concat(addedPhotoshoot);
+
+    await photoRef.update({ photoshoot: finalPhotoshoot });
+
+    return res.status(200).send((await photoRef.get()).data());
   }
-
-  const photoRef = db.collection("main-photos").doc(photoId);
-
-  const doc = await photoRef.get();
-
-  if (!doc.exists)
-    return res.status(400).send("Database error: photo does not exist.");
-
-  const photo = doc.data() as Photo;
-
-  const photoshoot = photo.photoshoot;
-
-  const finalPhotoshoot = photoshoot.concat(addedPhotoshoot);
-
-  await photoRef.update({ photoshoot: finalPhotoshoot });
-
-  return res.status(200).send((await photoRef.get()).data());
-});
+);
 
 // ! DELETE a photo to a photoshoot
 
-router.put("/:photoId/:photoshootPhotoId", async (req, res) => {
-  const bucket = storage().bucket();
-  const db = firestore();
+router.put(
+  "/:photoId/:photoshootPhotoId",
+  isAuthenticated,
+  async (req, res) => {
+    const bucket = storage().bucket();
+    const db = firestore();
 
-  const photoId = req.params.photoId;
-  const photoshootPhototId = req.params.photoshootPhotoId;
+    const photoId = req.params.photoId;
+    const photoshootPhototId = req.params.photoshootPhotoId;
 
-  const photoRef = db.collection("main-photos").doc(photoId);
+    const photoRef = db.collection("main-photos").doc(photoId);
 
-  if (!photoRef)
-    return res.status(400).send("Database error: photo does not exist.");
+    if (!photoRef)
+      return res.status(400).send("Database error: photo does not exist.");
 
-  const photo = (await photoRef.get()).data();
+    const photo = (await photoRef.get()).data();
 
-  if (!photo)
-    return res.status(400).send("Database error: photo does not exist.");
+    if (!photo)
+      return res.status(400).send("Database error: photo does not exist.");
 
-  const file = bucket.file(photoshootPhototId);
-  await file.delete().catch((error) => console.log(error));
+    const file = bucket.file(photoshootPhototId);
+    await file.delete().catch((error) => console.log(error));
 
-  const photoshoot = photo.photoshoot;
-  const photoshootId: string[] = photo.photoshoot.map(
-    (photoshootPhoto: { id: string; url: string }) => photoshootPhoto.id
-  );
+    const photoshoot = photo.photoshoot;
+    const photoshootId: string[] = photo.photoshoot.map(
+      (photoshootPhoto: { id: string; url: string }) => photoshootPhoto.id
+    );
 
-  photoshoot.splice(photoshootId.indexOf(photoshootPhototId), 1);
+    photoshoot.splice(photoshootId.indexOf(photoshootPhototId), 1);
 
-  await photoRef
-    .update({ photoshoot: photoshoot })
-    .catch((error) => console.log(error));
+    await photoRef
+      .update({ photoshoot: photoshoot })
+      .catch((error) => console.log(error));
 
-  return res.status(200).send(photo);
-});
+    return res.status(200).send(photo);
+  }
+);
 
 // ! PUT photo fields
 
-router.put("/:photoId", async (req, res) => {
+router.put("/:photoId", isAuthenticated, async (req, res) => {
   const db = firestore();
 
   const photoId = req.params.photoId;
@@ -214,7 +224,7 @@ router.put("/:photoId", async (req, res) => {
 
 // ! DELETE a photo by ID
 
-router.delete("/:photoId", async (req, res) => {
+router.delete("/:photoId", isAuthenticated, async (req, res) => {
   const bucket = storage().bucket();
   const db = firestore();
 

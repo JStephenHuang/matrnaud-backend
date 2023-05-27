@@ -3,6 +3,7 @@ import { firestore, storage } from "firebase-admin";
 import multer, { memoryStorage } from "multer";
 
 import { Router } from "express";
+import { isAuthenticated } from "../middlewares/isAuthenticated";
 import { v4 } from "uuid";
 
 const router = Router();
@@ -22,52 +23,57 @@ router.get("/:frameId", async (req, res) => {
   return res.status(200).send(doc.data());
 });
 
-router.post("/:seriesId", upload.single("photo"), async (req, res) => {
-  const db = firestore();
-  const bucket = storage().bucket();
+router.post(
+  "/:seriesId",
+  isAuthenticated,
+  upload.single("photo"),
+  async (req, res) => {
+    const db = firestore();
+    const bucket = storage().bucket();
 
-  if (!req.file) return res.status(400).send("No file.");
+    if (!req.file) return res.status(400).send("No file.");
 
-  const seriesId = req.params.seriesId;
+    const seriesId = req.params.seriesId;
 
-  const frameId = `frame-${v4()}`;
+    const frameId = `frame-${v4()}`;
 
-  const buffer = req.file.buffer;
-  const file = bucket.file(frameId);
-  await file.save(buffer).catch((error) => console.log(error));
-  await file.makePublic();
-  const path = file.publicUrl();
+    const buffer = req.file.buffer;
+    const file = bucket.file(frameId);
+    await file.save(buffer).catch((error) => console.log(error));
+    await file.makePublic();
+    const path = file.publicUrl();
 
-  const frame = {
-    id: frameId,
-    seriesId: seriesId,
-    title: "",
-    price: 0,
-    url: path,
-  };
+    const frame = {
+      id: frameId,
+      seriesId: seriesId,
+      title: "",
+      price: 0,
+      url: path,
+    };
 
-  await db.collection("frames").doc(frameId).set(frame);
+    await db.collection("frames").doc(frameId).set(frame);
 
-  const seriesRef = db.collection("series").doc(seriesId);
+    const seriesRef = db.collection("series").doc(seriesId);
 
-  const doc = await seriesRef.get();
-  if (!doc.exists)
-    return res.status(400).send("Database error: series does not exist.");
+    const doc = await seriesRef.get();
+    if (!doc.exists)
+      return res.status(400).send("Database error: series does not exist.");
 
-  const series = doc.data() as Series;
-  const frames = series.frames;
-  frames.push(frameId);
-  await seriesRef.update({ frames: frames });
+    const series = doc.data() as Series;
+    const frames = series.frames;
+    frames.push(frameId);
+    await seriesRef.update({ frames: frames });
 
-  const frameRef = await db
-    .collection("frames")
-    .where("seriesId", "==", seriesId)
-    .get();
+    const frameRef = await db
+      .collection("frames")
+      .where("seriesId", "==", seriesId)
+      .get();
 
-  return res.status(200).send(frameRef.docs.map((frame) => frame.data()));
-});
+    return res.status(200).send(frameRef.docs.map((frame) => frame.data()));
+  }
+);
 
-router.put("/:frameId", async (req, res) => {
+router.put("/:frameId", isAuthenticated, async (req, res) => {
   const db = firestore();
 
   const frameId = req.params.frameId;
@@ -88,7 +94,7 @@ router.put("/:frameId", async (req, res) => {
   return res.status(200).send(frame.data());
 });
 
-router.delete("/:frameId", async (req, res) => {
+router.delete("/:frameId", isAuthenticated, async (req, res) => {
   const db = firestore();
   const bucket = storage().bucket();
 
