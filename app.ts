@@ -14,7 +14,7 @@ const app = express();
 
 dotenv.config();
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -34,6 +34,10 @@ app.use("/api/email", emailRouter);
 
 app.post("/api/login", isAuthenticated, (req, res) => {
   res.status(200).send("Cookie set");
+});
+
+app.post("/api/auth", isAuthenticated, (req, res) => {
+  res.status(200).send("Authenticated");
 });
 
 export default app;

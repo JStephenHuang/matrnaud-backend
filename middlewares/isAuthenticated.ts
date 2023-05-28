@@ -10,18 +10,19 @@ export const isAuthenticated = (
   next: NextFunction
 ) => {
   const authHeader = req.headers["authorization"];
-  if (authHeader === undefined) return res.status(401).send("Unauthorized");
+  if (authHeader === undefined) return res.status(401).send("Unauthorized 1");
   const credential = Buffer.from(authHeader.split(" ")[1], "base64")
     .toString() //username:password
     .split(":"); // [username, password]
 
+  console.log(credential);
   const username = credential[0];
   const password = credential[1];
 
   if (username !== (process.env.USERNAME as string))
-    return res.status(401).send("Unauthorized");
+    return res.status(401).send("Unauthorized 2");
   if (password !== (process.env.PASSWORD as string))
-    return res.status(401).send("Unauthorized");
+    return res.status(401).send("Unauthorized 3");
 
   return next();
 };
