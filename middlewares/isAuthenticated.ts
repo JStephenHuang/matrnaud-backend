@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 
 import dotenv from "dotenv";
+import { firestore } from "firebase-admin";
 
 dotenv.config();
 
-export const isAuthenticated = (
+export const isAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -15,14 +16,20 @@ export const isAuthenticated = (
     .toString() //username:password
     .split(":"); // [username, password]
 
-  console.log(credential);
+  const db = firestore();
+
   const username = credential[0];
   const password = credential[1];
 
-  if (username !== (process.env.USERNAME as string))
+  const snapshot = await db
+    .collection("credentials")
+    .where("username", "==", username)
+    .where("password", "==", password)
+    .get();
+
+  if (snapshot.empty) {
     return res.status(401).send("Unauthorized 2");
-  if (password !== (process.env.PASSWORD as string))
-    return res.status(401).send("Unauthorized 3");
+  }
 
   return next();
 };
