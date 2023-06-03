@@ -16,7 +16,11 @@ dotenv.config();
 
 app.use(
   cors({
-    origin: [process.env.ADMIN_URL as string, process.env.CLIENT_URL as string],
+    origin: [
+      process.env.ADMIN_URL as string,
+      process.env.CLIENT_URL as string,
+      process.env.DOMAIN as string,
+    ],
     credentials: true,
   })
 );
