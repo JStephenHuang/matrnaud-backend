@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
   if (!mainPhotos)
     return res
       .status(400)
-      .send("Database error: columns collection do not exist.");
+      .send("Database error: main-photos collection do not exist.");
 
   return res.status(200).json(mainPhotos.docs.map((photo) => photo.data()));
 });
@@ -47,7 +47,7 @@ router.get("/:photoId", async (req, res) => {
   if (!photo)
     return res
       .status(400)
-      .send("Database error: columns collection do not exist.");
+      .send("Database error: main-photos collection do not exist.");
 
   return res.status(200).send(photo.data());
 });
@@ -76,8 +76,6 @@ router.post("/", isAuthenticated, upload.single("photo"), async (req, res) => {
     description: "",
     mainPhoto: path,
     popularity: 0,
-    active: false,
-    price: 0,
     photoshoot: [],
   };
 
