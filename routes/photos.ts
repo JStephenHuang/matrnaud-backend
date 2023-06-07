@@ -150,6 +150,38 @@ router.post(
   }
 );
 
+router.put("/main/:photoId", upload.single("photo"), async (req, res) => {
+  const bucket = storage().bucket();
+  const db = firestore();
+
+  if (req.file === undefined) return res.status(400).send("Missing file");
+
+  const photoId = req.params.photoId;
+
+  const photoRef = db.collection("main-photos").doc(photoId);
+
+  if (!photoRef)
+    return res.status(400).send("Database error: photo does not exist.");
+
+  const oldFile = bucket.file(photoId);
+  if (!(await oldFile.exists()))
+    return res.status(400).send("Photo does not exists");
+
+  await oldFile.delete();
+
+  const fileId = `photo-${v4()}`;
+
+  const buffer = req.file.buffer;
+  const file = bucket.file(fileId);
+  await file.save(buffer).catch((error) => console.log(error));
+  await file.makePublic();
+  const path = file.publicUrl();
+
+  await photoRef.update({ mainPhoto: path });
+
+  return res.status(200).send((await photoRef.get()).data());
+});
+
 // ! DELETE a photo to a photoshoot
 
 router.put(

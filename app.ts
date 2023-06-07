@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { router as emailRouter } from "./routes/email";
 import express from "express";
 import { router as framesRouter } from "./routes/frames";
+import { router as infoRouter } from "./routes/info";
 import { isAuthenticated } from "./middlewares/isAuthenticated";
 import { router as photoRouter } from "./routes/photos";
 import { router as seriesRouter } from "./routes/series";
@@ -40,6 +41,7 @@ app.use("/api/series", seriesRouter);
 app.use("/api/frames", framesRouter);
 app.use("/api/stripe", stripeRouter);
 app.use("/api/email", emailRouter);
+app.use("/api/info", infoRouter);
 
 app.post("/api/login", isAuthenticated, (req, res) => {
   res.status(200).send("Cookie set");
