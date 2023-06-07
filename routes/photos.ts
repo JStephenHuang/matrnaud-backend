@@ -208,8 +208,6 @@ router.put("/:photoId", isAuthenticated, async (req, res) => {
     title: editedPhoto.title,
     description: editedPhoto.description,
     popularity: Number(editedPhoto.popularity),
-    active: editedPhoto.active,
-    price: Number(editedPhoto.price),
   });
 
   const photo = await photoRef.get();
